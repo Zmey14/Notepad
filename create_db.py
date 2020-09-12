@@ -85,8 +85,8 @@ class Menu(Table):
         count = 1
         print()
 
-        for test in session.query(Table).order_by(Table.deadline):
-            print(f"{count}. {test}.")
+        for task in session.query(Table).order_by(Table.deadline):
+            print(f"{count}. {task}. {task.deadline.strftime('%d %b')}")
             count += 1
         return self.choices()
 
