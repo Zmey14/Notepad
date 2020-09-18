@@ -31,7 +31,7 @@ class Menu(Table):
         self.user = ''
 
     def choices(self):
-        self.user = int(input("\n1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Add task\n0) Exit\n"))
+        self.user = int(input("\n1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Missed tasks\n5) Add task\n6) Delete task\n0) Exit\n"))
         if self.user == 1:
             Menu.show_today(self)
         elif self.user == 2: # Вывести задания на всю неделю по дням
@@ -39,7 +39,11 @@ class Menu(Table):
         elif self.user == 3: # Вывести все текущие задания
             Menu.show_all(self)
         elif self.user == 4:
+            Menu.missed_tasks(self)
+        elif self.user == 5:
             Menu.add(self)
+        elif self.user == 6:
+            Menu.delete(self)
         elif self.user == 0:
             Menu.end(self)
 
@@ -90,6 +94,21 @@ class Menu(Table):
             count += 1
         return self.choices()
 
+    # Прошедшие задачи
+    def missed_tasks(self):
+        print()
+        count = 1
+        check = session.query(Table).filter(Table.deadline < datetime.today().date())
+        if check == None:
+            print("Nothing is missed!")
+        else:
+            tasks = session.query(Table).filter(Table.deadline < datetime.today().date()).order_by(Table.deadline)
+            for task in tasks:
+                print(f"{count}. {task}. {task.deadline.strftime('%d %b')}")
+                count += 1
+
+        return self.choices()
+
     # Добавление нового задания на определённую дату форматом: 2020-09-30(год, месяц, день)
     def add(self):
         added = input("\nEnter task\n")
@@ -99,6 +118,28 @@ class Menu(Table):
         session.commit()
         print("The task has been added!\n")
         return self.choices()
+
+    # Удаление задания
+    def delete(self):
+        count = 1
+        task = session.query(Table).filter(Table.deadline)
+        for i in task:
+            print(f"{count}. {i}. {i.deadline.strftime('%d %b')}")
+            count += 1
+
+        print("Choose the number of the task you want to delete:")
+
+        guess = int(input())
+        rows = session.query(Table).filter(Table.deadline).all()
+        specific_row = rows[guess - 1]
+        session.delete(specific_row)
+        print("The task has been deleted!\n")
+        session.commit()
+        return self.choices()
+
+        # else:
+        #     print("Nothing to delete")
+        #     return self.choices()
 
     # Выход из прогрммы
     def end(self):
